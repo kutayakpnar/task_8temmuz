@@ -1,10 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UserRegistrationApi.Data;
 using UserRegistrationApi.Models;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using System;
+
 
 namespace UserRegistrationApi.Services
 {
@@ -58,6 +55,7 @@ namespace UserRegistrationApi.Services
 
         public async Task<User> RegisterUser(User user, IFormFile profilePicture)
         {
+            //I add user profile photos to upload file according to my decision.
             if (profilePicture != null)
             {
                 var uploadsFolder = Path.Combine("uploads");
@@ -84,5 +82,18 @@ namespace UserRegistrationApi.Services
         {
             return await _context.Users.ToListAsync();
         }
+        public async Task<bool> DeleteUser(int id)
+{
+    var user = await _context.Users.FindAsync(id);
+    if (user == null)
+    {
+        return false;
+    }
+
+    _context.Users.Remove(user);
+    await _context.SaveChangesAsync();
+    return true;
+}
+
     }
 }

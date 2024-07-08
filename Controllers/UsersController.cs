@@ -2,8 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using UserRegistrationApi.Services;
 using UserRegistrationApi.Dtos;
 using UserRegistrationApi.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace UserRegistrationApi.Controllers
 {
@@ -88,5 +87,17 @@ namespace UserRegistrationApi.Controllers
             }
             return NoContent();
         }
+        // DELETE: api/Users/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var result = await _userService.DeleteUser(id);
+            if (!result)
+            {
+                return NotFound();
+            }
+            return NoContent();
+        }
+
     }
 }
