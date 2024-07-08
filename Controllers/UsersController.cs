@@ -27,8 +27,6 @@ namespace UserRegistrationApi.Controllers
         {
             return await _context.Users.ToListAsync();
         }
-
-        // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -40,33 +38,34 @@ namespace UserRegistrationApi.Controllers
             return user;
         }
 
-        // POST: api/Users/register
+
         [HttpPost("register")]
-        public async Task<ActionResult<User>> RegisterUser([FromForm] UserCreateDto userDto)
+public async Task<ActionResult<User>> RegisterUser([FromForm] UserCreateDto userDto)
+{
+    var user = new User
+    {
+        Name = userDto.Name,
+        Email = userDto.Email,
+        Password = userDto.Password
+    };
+
+    if (userDto.ProfilePicture != null)
+    {
+        var uploadsFolder = Path.Combine("uploads");
+        var uniqueFileName = Guid.NewGuid().ToString() + "_" + userDto.ProfilePicture.FileName;
+        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
         {
-            var user = new User
-            {
-                Name = userDto.Name,
-                Email = userDto.Email,
-                Password = userDto.Password
-            };
-
-            if (userDto.ProfilePicture != null)
-            {
-                var uploadsFolder = Path.Combine("uploads");
-                var uniqueFileName = Guid.NewGuid().ToString() + "_" + userDto.ProfilePicture.FileName;
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    userDto.ProfilePicture.CopyTo(fileStream);
-                }
-                user.ProfilePictureUrl = filePath;
-            }
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+            userDto.ProfilePicture.CopyTo(fileStream);
         }
+        user.ProfilePictureUrl = "/uploads/" + uniqueFileName;
+    }
+
+    _context.Users.Add(user);
+    await _context.SaveChangesAsync();
+    return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+}
+
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
@@ -92,6 +91,51 @@ namespace UserRegistrationApi.Controllers
                     throw;
                 }
             }
+            return NoContent();
+        }
+
+        // PUT: api/Users/changeName/{id}
+        [HttpPut("changeName/{id}")]
+        public async Task<IActionResult> ChangeName(int id, ChangeNameDto dto)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            user.Name = dto.NewName;
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // PUT: api/Users/changeEmail/{id}
+        [HttpPut("changeEmail/{id}")]
+        public async Task<IActionResult> ChangeEmail(int id, ChangeEmailDto dto)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            user.Email = dto.NewEmail;
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // PUT: api/Users/changePassword/{id}
+        [HttpPut("changePassword/{id}")]
+        public async Task<IActionResult> ChangePassword(int id, ChangePasswordDto dto)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            user.Password = dto.NewPassword;
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
