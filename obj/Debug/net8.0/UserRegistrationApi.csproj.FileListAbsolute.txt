@@ -135,3 +135,4 @@
 /Users/kutayakpinar/Desktop/fileorbis/UserRegistrationApi/obj/Debug/net8.0/UserRegistrationApi.pdb
 /Users/kutayakpinar/Desktop/fileorbis/UserRegistrationApi/obj/Debug/net8.0/UserRegistrationApi.genruntimeconfig.cache
 /Users/kutayakpinar/Desktop/fileorbis/UserRegistrationApi/obj/Debug/net8.0/ref/UserRegistrationApi.dll
+/Users/kutayakpinar/Desktop/fileorbis/UserRegistrationApi/obj/Debug/net8.0/UserRegistrationApi.sourcelink.json

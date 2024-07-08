@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserRegistrationApi.Data;
 using UserRegistrationApi.Models;
+using UserRegistrationApi.Dtos;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using System;
 
 namespace UserRegistrationApi.Controllers
 {
@@ -25,7 +28,7 @@ namespace UserRegistrationApi.Controllers
             return await _context.Users.ToListAsync();
         }
 
-        // GET: api/Users/{id}
+        // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -37,16 +40,35 @@ namespace UserRegistrationApi.Controllers
             return user;
         }
 
-        // POST: api/Users
-[HttpPost]
-public async Task<ActionResult<User>> PostUser(User user)
-{
-    _context.Users.Add(user);
-    await _context.SaveChangesAsync();
-    return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
-}
+        // POST: api/Users/register
+        [HttpPost("register")]
+        public async Task<ActionResult<User>> RegisterUser([FromForm] UserCreateDto userDto)
+        {
+            var user = new User
+            {
+                Name = userDto.Name,
+                Email = userDto.Email,
+                Password = userDto.Password
+            };
 
-        // PUT: api/Users/{id}
+            if (userDto.ProfilePicture != null)
+            {
+                var uploadsFolder = Path.Combine("uploads");
+                var uniqueFileName = Guid.NewGuid().ToString() + "_" + userDto.ProfilePicture.FileName;
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    userDto.ProfilePicture.CopyTo(fileStream);
+                }
+                user.ProfilePictureUrl = filePath;
+            }
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+        }
+
+        // PUT: api/Users/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, User user)
         {

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using UserRegistrationApi.Data;
-using UserRegistrationApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +23,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
 app.UseAuthorization();
 
 // Map controllers
