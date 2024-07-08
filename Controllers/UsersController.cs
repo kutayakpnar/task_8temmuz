@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using UserRegistrationApi.Data;
-using UserRegistrationApi.Models;
+using UserRegistrationApi.Services;
 using UserRegistrationApi.Dtos;
+using UserRegistrationApi.Models;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-using System;
 
 namespace UserRegistrationApi.Controllers
 {
@@ -14,98 +11,57 @@ namespace UserRegistrationApi.Controllers
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly UserService _userService;
 
-        public UsersController(ApplicationDbContext context)
+        public UsersController(UserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
 
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _userService.GetUsers();
+            return Ok(users);
         }
+
+        // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userService.GetUser(id);
             if (user == null)
             {
                 return NotFound();
             }
-            return user;
+            return Ok(user);
         }
 
-
+        // POST: api/Users/register
         [HttpPost("register")]
-public async Task<ActionResult<User>> RegisterUser([FromForm] UserCreateDto userDto)
-{
-    var user = new User
-    {
-        Name = userDto.Name,
-        Email = userDto.Email,
-        Password = userDto.Password
-    };
-
-    if (userDto.ProfilePicture != null)
-    {
-        var uploadsFolder = Path.Combine("uploads");
-        var uniqueFileName = Guid.NewGuid().ToString() + "_" + userDto.ProfilePicture.FileName;
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        public async Task<ActionResult<User>> RegisterUser([FromForm] UserCreateDto userDto)
         {
-            userDto.ProfilePicture.CopyTo(fileStream);
-        }
-        user.ProfilePictureUrl = "/uploads/" + uniqueFileName;
-    }
-
-    _context.Users.Add(user);
-    await _context.SaveChangesAsync();
-    return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
-}
-
-
-        // PUT: api/Users/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
-        {
-            if (id != user.Id)
+            var user = new User
             {
-                return BadRequest();
-            }
-            _context.Entry(user).State = EntityState.Modified;
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            return NoContent();
+                Name = userDto.Name,
+                Email = userDto.Email,
+                Password = userDto.Password
+            };
+
+            var createdUser = await _userService.RegisterUser(user, userDto.ProfilePicture);
+            return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
         }
 
         // PUT: api/Users/changeName/{id}
         [HttpPut("changeName/{id}")]
         public async Task<IActionResult> ChangeName(int id, ChangeNameDto dto)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userService.ChangeName(id, dto.NewName);
             if (user == null)
             {
                 return NotFound();
             }
-            user.Name = dto.NewName;
-            _context.Entry(user).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -113,14 +69,11 @@ public async Task<ActionResult<User>> RegisterUser([FromForm] UserCreateDto user
         [HttpPut("changeEmail/{id}")]
         public async Task<IActionResult> ChangeEmail(int id, ChangeEmailDto dto)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userService.ChangeEmail(id, dto.NewEmail);
             if (user == null)
             {
                 return NotFound();
             }
-            user.Email = dto.NewEmail;
-            _context.Entry(user).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -128,20 +81,12 @@ public async Task<ActionResult<User>> RegisterUser([FromForm] UserCreateDto user
         [HttpPut("changePassword/{id}")]
         public async Task<IActionResult> ChangePassword(int id, ChangePasswordDto dto)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userService.ChangePassword(id, dto.NewPassword);
             if (user == null)
             {
                 return NotFound();
             }
-            user.Password = dto.NewPassword;
-            _context.Entry(user).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
             return NoContent();
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.Id == id);
         }
     }
 }

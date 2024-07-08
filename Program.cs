@@ -1,7 +1,7 @@
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using UserRegistrationApi.Data;
+using UserRegistrationApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 
